@@ -96,7 +96,7 @@ public class MonteCarloScheduler implements Scheduler {
 
     private Protos.CommandInfo.Builder createCommand(String args) {
         return Protos.CommandInfo.newBuilder()
-                .setValue("java -cp $JAR_PATH org.packt.mesos.MonteCarloExecutor " + args);
+                .setValue("java -cp $JAR_PATH com.diorsding.mesos.montecarloarea.MonteCarloExecutor " + args);
     }
 
     public void offerRescinded(SchedulerDriver driver, OfferID offerId) {
