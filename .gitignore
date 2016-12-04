@@ -1,0 +1,18 @@
+*.class
+
+
+# Package Files #
+*.jar
+*.war
+*.ear
+*.html
+
+# target 
+target
+
+# IDE stuff
+.settings/
+.classpath
+.project
+.idea/
+*.iml
