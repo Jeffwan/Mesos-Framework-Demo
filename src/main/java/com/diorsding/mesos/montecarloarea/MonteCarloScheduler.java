@@ -41,7 +41,7 @@ public class MonteCarloScheduler implements Scheduler {
         double yStep = (yHigh - yLow) / (numTasks / 2);
         for (double x = xLow; x < xHigh; x += xStep) {
             for (double y = yLow; y < yHigh; y += yStep) {
-                tasks.add(" \" " + args[0] + " \" " + x + " " + (x + xStep) + " " + y + " " + (y + yStep) + " "
+                tasks.add(" \"" + args[0] + "\" " + x + " " + (x + xStep) + " " + y + " " + (y + yStep) + " "
                         + args[5]);
             }
         }
@@ -95,8 +95,14 @@ public class MonteCarloScheduler implements Scheduler {
     }
 
     private Protos.CommandInfo.Builder createCommand(String args) {
-        return Protos.CommandInfo.newBuilder()
-                .setValue("java -cp $JAR_PATH com.diorsding.mesos.montecarloarea.MonteCarloExecutor " + args);
+        String jarPath = System.getProperty("JAR_PATH");
+        jarPath = "/vagrant/mesos-framework-demo.jar";
+        String command =
+                "java -cp " + jarPath + " com.diorsding.mesos.montecarloarea.MonteCarloExecutor" + args;
+
+        System.out.println(command);
+
+        return Protos.CommandInfo.newBuilder().setValue(command);
     }
 
     public void offerRescinded(SchedulerDriver driver, OfferID offerId) {

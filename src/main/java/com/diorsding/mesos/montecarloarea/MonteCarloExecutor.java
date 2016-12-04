@@ -10,6 +10,8 @@ import org.apache.mesos.Protos.SlaveInfo;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
 
+import com.google.protobuf.ByteString;
+
 public class MonteCarloExecutor implements Executor {
 
     Expression expression;
@@ -46,8 +48,44 @@ public class MonteCarloExecutor implements Executor {
 
     }
 
-    public void launchTask(ExecutorDriver driver, TaskInfo task) {
-        // TODO Auto-generated method stub
+    public void launchTask(final ExecutorDriver executorDriver, final TaskInfo taskInfo) {
+        System.out.println("Launching task " + taskInfo.getTaskId().getValue());
+
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                // Notify the status as running
+                Protos.TaskStatus status =
+                        Protos.TaskStatus.newBuilder().setTaskId(taskInfo.getTaskId())
+                                .setState(Protos.TaskState.TASK_RUNNING).build();
+                executorDriver.sendStatusUpdate(status);
+                System.out.println("Running task " + taskInfo.getTaskId().getValue());
+                double pointsUnderCurve = 0;
+                double totalPoints = 0;
+
+                for (double x = xLow; x <= xHigh; x += (xHigh - xLow) / n) {
+                    for (double y = yLow; y <= yHigh; y += (yHigh - yLow) / n) {
+                        double value = expression.evaluate(x);
+                        if (value >= y) {
+                            pointsUnderCurve++;
+                        }
+                        totalPoints++;
+                    }
+                }
+                double area = (xHigh - xLow) * (yHigh - yLow) * pointsUnderCurve / totalPoints; // Area of Rectangle *
+                                                                                                // fraction of points
+                                                                                                // under curve
+                // Notify the status as finish
+                status =
+                        Protos.TaskStatus.newBuilder().setTaskId(taskInfo.getTaskId())
+                                .setState(Protos.TaskState.TASK_FINISHED)
+                                .setData(ByteString.copyFrom(Double.toString(area).getBytes())).build();
+                executorDriver.sendStatusUpdate(status);
+                System.out.println("Finished task " + taskInfo.getTaskId().getValue() + " with area : " + area);
+            }
+        };
+
+        thread.start();
 
     }
 

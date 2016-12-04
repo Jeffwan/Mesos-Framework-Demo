@@ -16,7 +16,7 @@ public class App {
 
         System.out.println("Starting the MonteCarloArea on Mesos with master " + args[0]);
         Protos.FrameworkInfo frameworkInfo =
-                Protos.FrameworkInfo.newBuilder().setName("MonteCarloArea").setUser("Jiaxin").build();
+                Protos.FrameworkInfo.newBuilder().setName("MonteCarloArea").setUser("").build();
         MesosSchedulerDriver schedulerDriver =
                 new MesosSchedulerDriver(new MonteCarloScheduler(Arrays.copyOfRange(args, 2, args.length),
                         Integer.parseInt(args[1])), frameworkInfo, args[0]);
