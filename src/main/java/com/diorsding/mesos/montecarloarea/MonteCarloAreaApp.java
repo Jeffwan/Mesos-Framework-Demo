@@ -5,7 +5,13 @@ import java.util.Arrays;
 import org.apache.mesos.MesosSchedulerDriver;
 import org.apache.mesos.Protos;
 
-public class App {
+/**
+ * java -cp mesos-framework-demo.jar com.diorsding.mesos.montecarloarea.App "zk://localhost:2181/mesos" 
+ * 4 "x" 0 10 0 10 100
+ * @author jiashan
+ *
+ */
+public class MonteCarloAreaApp {
 
     public static void main(String[] args) {
         if (args.length < 8) {
