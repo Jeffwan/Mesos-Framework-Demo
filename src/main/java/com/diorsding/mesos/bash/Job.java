@@ -1,7 +1,11 @@
 package com.diorsding.mesos.bash;
 
+import java.io.UnsupportedEncodingException;
 import java.util.UUID;
 
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.RetryOneTime;
 import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.SlaveID;
@@ -29,14 +33,20 @@ public class Job {
 
     public void launch() {
         status = JobState.STAGING;
+
+        saveState();
     }
 
     public void started() {
         status = JobState.RUNNING;
+
+        saveState();
     }
 
     public void succeed() {
         status = JobState.SUCCESSFUL;
+
+        saveState();
     }
 
     public void fail() {
@@ -45,6 +55,32 @@ public class Job {
         } else {
             retries--;
             status = JobState.PENDING;
+        }
+
+        saveState();
+    }
+
+    private void saveState() {
+        // TODO: This is Hack here. We should use global instance.
+        CuratorFramework curator = CuratorFrameworkFactory.newClient("", new RetryOneTime(1000));
+        JSONObject obj = new JSONObject();
+        obj.put("id", id);
+        obj.put("status", (status == JobState.STAGING ? JobState.RUNNING : status).toString());
+
+        byte[] data = null;
+        try {
+            data = obj.toString().getBytes("UTF-8");
+            curator.setData().forPath("/sampleframework/jobs" + id, data);
+        } catch (UnsupportedEncodingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (Exception e) {
+            try {
+                curator.create().creatingParentsIfNeeded().forPath("/sampleframework/jobs" + id, data);
+            } catch (Exception e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
         }
     }
 
@@ -126,5 +162,10 @@ public class Job {
         job.mem = obj.getDouble("mem");
         job.command = obj.getString("command");
         return job;
+    }
+
+    public static Job fromJSON(JSONObject jobJSON, CuratorFramework curator) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

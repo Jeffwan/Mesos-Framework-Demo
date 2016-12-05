@@ -6,6 +6,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.recipes.leader.LeaderLatch;
+import org.apache.curator.retry.RetryOneTime;
 import org.apache.mesos.MesosSchedulerDriver;
 import org.apache.mesos.Protos.ExecutorID;
 import org.apache.mesos.Protos.FrameworkID;
@@ -19,6 +23,7 @@ import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
+import org.apache.zookeeper.KeeperException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -26,14 +31,23 @@ public class UselessRemoteBASH implements Scheduler {
 
     private List<Job> jobs = new ArrayList<Job>();
 
+    static CuratorFramework curator;
+
     public void registered(SchedulerDriver driver, FrameworkID frameworkId, MasterInfo masterInfo) {
         System.out.println("Registered with framework id " + frameworkId);
+
+        try {
+            curator.create().creatingParentContainersIfNeeded()
+                    .forPath("/sampleframework/id", frameworkId.getValue().getBytes());
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
     }
 
     public void reregistered(SchedulerDriver driver, MasterInfo masterInfo) {
         // TODO Auto-generated method stub
-
     }
 
     public void resourceOffers(SchedulerDriver driver, List<Offer> offers) {
@@ -156,17 +170,56 @@ public class UselessRemoteBASH implements Scheduler {
     }
 
     public static void main(String[] args) throws Exception {
-        byte[] data = Files.readAllBytes(Paths.get(args[1]));
-        JSONObject config = new JSONObject(new String(data, "UTF-8"));
-        JSONArray jobsArray = config.getJSONArray("jobs");
+        curator = CuratorFrameworkFactory.newClient(args[0], new RetryOneTime(1000));
+
+        curator.start();
+
+        LeaderLatch leaderLatch = new LeaderLatch(curator, "sampleframwork/leader");
+        leaderLatch.start();
+        leaderLatch.await();
+
         List<Job> jobs = new ArrayList<Job>();
-        for (int i = 0; i < jobsArray.length(); i++) {
-            jobs.add(Job.fromJSON(jobsArray.getJSONObject(i)));
+        // Load jobs from json file
+        if (args.length > 1) {
+            byte[] data = Files.readAllBytes(Paths.get(args[1]));
+            JSONObject config = new JSONObject(new String(data, "UTF-8"));
+            JSONArray jobsArray = config.getJSONArray("jobs");
+
+            for (int i = 0; i < jobsArray.length(); i++) {
+                jobs.add(Job.fromJSON(jobsArray.getJSONObject(i)));
+            }
+
+            System.out.println("Loaded jobs from file");
         }
 
-        System.out.println(jobs);
 
-        FrameworkInfo frameworkInfo = FrameworkInfo.newBuilder().setUser("").setName("Useless Remote BASH").build();
+        // Load jobs from Zookeeper
+        try {
+            for (String id : curator.getChildren().forPath("/sampleframework/jobs")) {
+                byte[] data = curator.getData().forPath("/sampleframework/jobs/" + id);
+
+                JSONObject jobJSON = new JSONObject(new String(data, "UTF-8"));
+                Job job = Job.fromJSON(jobJSON, curator);
+                jobs.add(job);
+            }
+            System.out.println("Loaded jobs from ZK");
+        } catch (Exception e) {
+            // Sample coode. Not production ready.
+        }
+
+
+
+        FrameworkInfo.Builder frameworkInfoBuilder =
+                FrameworkInfo.newBuilder().setUser("").setName("Useless Remote BASH");
+
+        try {
+            byte[] curatorData = curator.getData().forPath("/sampleframework/id");
+            frameworkInfoBuilder.setId(FrameworkID.newBuilder().setValue(new String(curatorData, "UTF-8")));
+        } catch (KeeperException.NoNodeException e) {
+            // Don't set FrameworkID
+        }
+
+        FrameworkInfo frameworkInfo = frameworkInfoBuilder.setFailoverTimeout(60 * 60 * 24 * 7).build();
         Scheduler scheduler = new UselessRemoteBASH();
 
         SchedulerDriver driver = new MesosSchedulerDriver(scheduler, frameworkInfo, "zk://" + args[0] + "/mesos");
