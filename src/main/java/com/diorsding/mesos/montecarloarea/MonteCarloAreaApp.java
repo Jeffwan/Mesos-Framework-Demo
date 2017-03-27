@@ -6,7 +6,7 @@ import org.apache.mesos.MesosSchedulerDriver;
 import org.apache.mesos.Protos;
 
 /**
- * java -cp mesos-framework-demo.jar com.diorsding.mesos.montecarloarea.App "zk://localhost:2181/mesos" 
+ * java -cp mesos-framework-demo.jar com.diorsding.mesos.montecarloarea.MonteCarloAreaApp "zk://localhost:2181/mesos"
  * 4 "x" 0 10 0 10 100
  * @author jiashan
  *

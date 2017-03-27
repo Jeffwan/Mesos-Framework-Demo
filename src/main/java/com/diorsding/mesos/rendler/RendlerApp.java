@@ -20,7 +20,7 @@ public class RendlerApp {
         }
 
         String path = System.getProperty("user.dir") + "/target/rendler.jar";
-        path = "/vagrant/mesos-framework-demo.jar";
+        path = "/tmp/mesos-framework-demo.jar";
         CommandInfo.URI uri = CommandInfo.URI.newBuilder().setValue(path).setExtract(false).build();
 
         ExecutorInfo executorInfoCrawl = getExecutorInfoCrawl(uri, path);

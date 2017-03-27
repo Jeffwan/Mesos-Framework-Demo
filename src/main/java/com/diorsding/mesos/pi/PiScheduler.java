@@ -1,6 +1,7 @@
 package com.diorsding.mesos.pi;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -98,7 +99,7 @@ public class PiScheduler implements Scheduler {
                 taskInfoList.add(piTaskInfo);
             }
 
-            driver.launchTasks(offer.getId(), taskInfoList);
+            driver.launchTasks(Collections.singletonList(offer.getId()), taskInfoList);
         }
     }
 

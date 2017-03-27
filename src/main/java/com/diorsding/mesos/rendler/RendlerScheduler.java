@@ -79,7 +79,7 @@ public class RendlerScheduler implements Scheduler {
 
                 System.out.println("Launching task " + taskId.getValue() + " with input: " + urlData);
                 // Task for crawler
-                TaskInfo task =
+                TaskInfo taskCrawler =
                         TaskInfo.newBuilder()
                                 .setName("task " + taskId.getValue())
                                 .setTaskId(taskId)
@@ -112,7 +112,7 @@ public class RendlerScheduler implements Scheduler {
                                 .setData(ByteString.copyFromUtf8(urlData))
                                 .setExecutor(ExecutorInfo.newBuilder(executorRender)).build();
 
-                tasks.add(task);
+                tasks.add(taskCrawler);
                 tasks.add(taskRender);
                 // Dequeue and update completed list
                 completedCrawlQueue.add(urlData);

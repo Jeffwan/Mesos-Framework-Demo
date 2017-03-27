@@ -23,7 +23,6 @@ public class PiExecutor implements Executor {
     public void registered(ExecutorDriver driver, ExecutorInfo executorInfo, FrameworkInfo frameworkInfo,
             SlaveInfo slaveInfo) {
         LOGGER.info("Registered PinUserBoardExecutor on " + slaveInfo.getHostname());
-
     }
 
     public void reregistered(ExecutorDriver driver, SlaveInfo slaveInfo) {
@@ -41,7 +40,6 @@ public class PiExecutor implements Executor {
         TaskStatus taskStatus =
                 TaskStatus.newBuilder().setTaskId(task.getTaskId()).setState(TaskState.TASK_RUNNING).build();
         driver.sendStatusUpdate(taskStatus);
-        String url = task.getData().toStringUtf8();
 
         byte[] message = new byte[0];
 

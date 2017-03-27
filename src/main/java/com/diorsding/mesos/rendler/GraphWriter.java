@@ -67,6 +67,4 @@ public class GraphWriter {
             sb.append(String.format("%02X", b & 0xFF));
         return sb.toString();
     }
-
-
 }
