@@ -15,6 +15,13 @@ import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 
+
+/**
+ * Usage:
+ *
+ * java -cp mesos-framework-demo.jar com.diorsding.mesos.montecarloarea.MonteCarloAreaApp "zk://localhost:2181/mesos" 10 "x" 0 10 0 10 1000
+ *
+ */
 public class MonteCarloScheduler implements Scheduler {
     // Internal Queue to hold tasks to be processed.
     private LinkedList<String> tasks;
@@ -58,6 +65,7 @@ public class MonteCarloScheduler implements Scheduler {
     }
 
     public void resourceOffers(SchedulerDriver driver, List<Offer> offers) {
+        // We don't have any strategy here, just get one resource to use.
         for (Protos.Offer offer : offers) {
             if (tasks.size() > 0) {
                 tasksSubmitted++;
@@ -96,7 +104,7 @@ public class MonteCarloScheduler implements Scheduler {
 
     private Protos.CommandInfo.Builder createCommand(String args) {
         String jarPath = System.getProperty("JAR_PATH");
-        jarPath = "/vagrant/mesos-framework-demo.jar";
+        jarPath = "/tmp/mesos-framework-demo.jar";
         String command =
                 "java -cp " + jarPath + " com.diorsding.mesos.montecarloarea.MonteCarloExecutor" + args;
 
@@ -119,6 +127,7 @@ public class MonteCarloScheduler implements Scheduler {
             tasksCompleted++;
             double area = Double.parseDouble(taskStatus.getData().toStringUtf8());
             totalArea += area;
+
             System.out.println("Task " + taskStatus.getTaskId().getValue() + " finished with area : " + area);
         } else {
             System.out.println("Task " + taskStatus.getTaskId().getValue() + " has message " + taskStatus.getMessage());

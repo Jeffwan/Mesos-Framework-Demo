@@ -60,6 +60,7 @@ public class MonteCarloExecutor implements Executor {
                                 .setState(Protos.TaskState.TASK_RUNNING).build();
                 executorDriver.sendStatusUpdate(status);
                 System.out.println("Running task " + taskInfo.getTaskId().getValue());
+
                 double pointsUnderCurve = 0;
                 double totalPoints = 0;
 
@@ -81,6 +82,7 @@ public class MonteCarloExecutor implements Executor {
                                 .setState(Protos.TaskState.TASK_FINISHED)
                                 .setData(ByteString.copyFrom(Double.toString(area).getBytes())).build();
                 executorDriver.sendStatusUpdate(status);
+
                 System.out.println("Finished task " + taskInfo.getTaskId().getValue() + " with area : " + area);
             }
         };
@@ -115,7 +117,8 @@ public class MonteCarloExecutor implements Executor {
             System.err.println("Usage: MonteCarloExecutor <Expression> <xLow> <xHigh> <yLow> <yHigh> <Number of Points>");
         }
 
-        MesosExecutorDriver driver = new MesosExecutorDriver(new MonteCarloExecutor(Expression.fromString(args[0]),Double.parseDouble(args[1]), Double.parseDouble(args[2]), Double.parseDouble(args[3]), Double.parseDouble(args[4]), Integer.parseInt(args[5])));
+        MesosExecutorDriver driver = new MesosExecutorDriver(new MonteCarloExecutor(Expression.fromString(args[0]),
+            Double.parseDouble(args[1]), Double.parseDouble(args[2]), Double.parseDouble(args[3]), Double.parseDouble(args[4]), Integer.parseInt(args[5])));
         Protos.Status status = driver.run();
         System.out.println("Driver exited with status "+status);
     }
